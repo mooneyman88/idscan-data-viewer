@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Data</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
+</head>
+<body>
+    <img src="{{ url_for('static', filename='img/Maddox-redbrown.png') }}" alt="Logo" class="logo">
+    <div class="title">             
+        <h1>Visitor Data</h1>
+    </div>
+    <div class="date-selectors">
+        <!-- Date Range Selector 1 -->
+        <div class="date-range-selector">
+            <label for="start_date_1">Start:</label>
+            <input type="text" id="start_date_1" name="start_date_1">
+            <label for="end_date_1">End:</label>
+            <input type="text" id="end_date_1" name="end_date_1">
+            <input type="checkbox" id="enable_second_range" name="enable_second_range">
+            <label for="enable_second_range">Compare</label>
+        </div>
+
+        <!-- Date Range Selector 2 -->
+        <div id="second_date_range" style="display: none;">
+            <label for="start_date_2">Start:</label>
+            <input type="text" id="start_date_2" name="start_date_2">
+            <label for="end_date_2">End:</label>
+            <input type="text" id="end_date_2" name="end_date_2">
+        </div>
+
+        <button id="submit">Update</button>
+    </div>
+
+    <!-- Charts Container -->
+    <div class="charts-container">
+        <div class="chart gender">
+            <canvas id="genderChart"></canvas>
+        </div>
+        <div class="chart weeknight">
+            <canvas id="weeknightChart"></canvas>
+        </div>
+        <div class="chart top-visitors text-info" id="textInfo">
+            <h2>Top Visitors</h2>
+        </div>
+        <div class="chart nationality">
+            <canvas id="nationalityChart"></canvas>
+        </div>
+        <div class="chart yearly">
+            <canvas id="frequencyLineChart"></canvas>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/chart.js') }}"></script>
+</body>
+</html>
