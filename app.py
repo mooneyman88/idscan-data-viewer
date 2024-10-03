@@ -1,8 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from flask_httpauth import HTTPBasicAuth
-import sqlite3
 import pandas as pd
-import psycopg2
 from psycopg2.extras import RealDictCursor
 from sqlalchemy import create_engine, text
 import os                               
@@ -26,7 +24,6 @@ def get_db_connection():
     db_url = f"postgresql+psycopg2://{os.environ.get('POSTGRE_ADDRESS')}"
     engine = create_engine(db_url)
     return engine
-
 
 
 @app.route('/data', methods=['POST'])
@@ -101,7 +98,6 @@ def data():
         'top_customers_1': top_customers_1,
         'top_customers_2': top_customers_2
     })
-
 
 @app.route('/monthly_visits', methods=['GET'])
 @auth.login_required

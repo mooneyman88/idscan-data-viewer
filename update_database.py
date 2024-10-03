@@ -6,6 +6,8 @@ import pandas as pd
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from email.mime.text import MIMEText
+from googleapiclient.errors import HttpError
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, PrimaryKeyConstraint, cast
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.exc import IntegrityError
@@ -102,16 +104,28 @@ def process_email(service, msg_id, zip_password):
                 f.write(file_data)
                 print(f"Attachment {path} downloaded.")
 
-                with pyzipper.AESZipFile(path) as zf:
-                    zf.extractall(path='reports', pwd=zip_password.encode())
-                    print(f"Extracted contents of {path}")
+                try:
+                    with pyzipper.AESZipFile(path) as zf:
+                        zf.extractall(path='reports', pwd=zip_password.encode())
+                        print(f"Extracted contents of {path}")
+                except pyzipper.BadZipFile:
+                    print(f"BadZipFile error for {path}, skipping extraction.")
 
                 # Delete the zip file
                 os.remove(path)
                 print(f"Deleted {path}")
 
             csv_path = os.path.join('reports', part['filename'].replace('.zip', '.csv'))
-            df = pd.read_csv(csv_path, on_bad_lines='skip')
+            if not os.path.exists(csv_path):
+                print(f"CSV file {csv_path} not found, skipping.")
+                continue
+
+            try:
+                df = pd.read_csv(csv_path, on_bad_lines='skip')
+            except FileNotFoundError:
+                print(f"FileNotFoundError for {csv_path}, skipping.")
+                continue
+
             columns_to_keep = ['Scan Time', 'Full Name', 'Date of Birth', 'Visit Count', 'Document Type', 'Gender']
             df = df[columns_to_keep]
             df = df.dropna()
@@ -165,8 +179,22 @@ def add_new_data_to_database(df):
 
     session.close()
 
+def send_confirmation_email(service, to, subject, body):
+    message = MIMEText(body)
+    message['to'] = to
+    message['subject'] = subject
+
+    raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
+    message = {'raw': raw}
+
+    try:
+        message = service.users().messages().send(userId='me', body=message).execute()
+        print(f"Message Id: {message['id']}")
+    except HttpError as error:
+        print(f"An error occurred: {error}")
+
 if __name__ == '__main__':
-    zip_password = '7Ak-$9Sz3c'
+    zip_password = os.environ.get('ZIP_PASSWORD')
     service = authenticate_gmail()
     unread_emails = fetch_unread_emails(service)
 
@@ -176,3 +204,4 @@ if __name__ == '__main__':
         if df is not None:
             add_new_data_to_database(df)
         mark_email_as_read(service, msg_id)
+    send_confirmation_email(service, os.environ.get('ADMIN_EMAIL'), 'Data Processing Complete', 'All new data has been processed and added to the database.')
