@@ -19,14 +19,12 @@ def get_pw(username):
         return users.get(username)
     return None
 
-
 def get_db_connection():
     db_url = f"postgresql+psycopg2://{os.environ.get('POSTGRE_ADDRESS')}"
     engine = create_engine(db_url)
     return engine
 
-
-@app.route('/data', methods=['POST'])
+@app.route('/data', methods=['POST'])               ##### PREPS AND RETURNS JSON DATA FOR THE SELECTED DATE RANGE(S) #####
 @auth.login_required
 def data():
     start_date_1 = request.form['start_date_1']
@@ -45,9 +43,6 @@ def data():
         df_2 = pd.read_sql(query_2, engine, params={"start_date_2": start_date_2, "end_date_2": end_date_2})
     else:
         df_2 = pd.DataFrame()  # Empty DataFrame if second range is not enabled
-
-
-    ##### DATA PREPARATION #####
 
     gender_data_1 = df_1[df_1['gender'] != 'Unknown']['gender'].value_counts().to_dict()
     avg_age_1 = df_1[df_1['gender'] != 'Unknown'].groupby('gender')['age'].mean().round().to_dict()
@@ -118,7 +113,6 @@ def monthly_visits():
 
     return jsonify(monthly_visits.to_dict())
 
-
 @app.route('/top-visitors')
 @auth.login_required
 def top_visitors():
@@ -130,13 +124,6 @@ def top_visitors():
     top_customers_1 = df['full_name'].value_counts().nlargest(20).to_dict()
 
     return render_template('top-visitors.html', top_customers_1=top_customers_1)
-
-
-@app.route('/line')
-@auth.login_required
-def line_chart():
-    return render_template('line_chart.html')
-
 
 @app.route('/')
 @auth.login_required
