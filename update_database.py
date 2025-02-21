@@ -3,6 +3,7 @@ import pickle
 import base64
 import pyzipper
 import pandas as pd
+import csv
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -13,6 +14,8 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.types import DateTime
 
+
+# TODO: create a temp folder for the reports, move the downloded files to the reports folder after processing
 
 Base = declarative_base()
 
@@ -62,8 +65,8 @@ def apply_weeknight_str(key):
 def authenticate_gmail():
     SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
     creds = None
-    # if os.path.exists('token.pickle'):
-    #     os.remove('token.pickle')  # Remove the old token to force re-authentication
+    if os.path.exists('token.pickle'):
+        os.remove('token.pickle')  # Remove the old token to force re-authentication
     if os.path.exists('token.pickle'):
         with open('token.pickle', 'rb') as token:
             creds = pickle.load(token)
@@ -121,7 +124,7 @@ def process_email(service, msg_id, zip_password):
                 continue
 
             try:
-                df = pd.read_csv(csv_path, on_bad_lines='skip')
+                df = pd.read_csv(csv_path, quoting=csv.QUOTE_NONE, on_bad_lines='skip')
             except FileNotFoundError:
                 print(f"FileNotFoundError for {csv_path}, skipping.")
                 continue

@@ -24,7 +24,10 @@ def get_db_connection():
     engine = create_engine(db_url)
     return engine
 
-@app.route('/data', methods=['POST'])               ##### PREPS AND RETURNS JSON DATA FOR THE SELECTED DATE RANGE(S) #####
+
+ ##### PREPS AND RETURNS JSON DATA FOR THE SELECTED DATE RANGE(S) #####
+
+@app.route('/data', methods=['POST']) 
 @auth.login_required
 def data():
     start_date_1 = request.form['start_date_1']
